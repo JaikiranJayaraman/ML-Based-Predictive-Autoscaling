@@ -400,9 +400,9 @@ Being upfront about these shows you understand the system:
 
 | Member | Responsibility |
 |---|---|
-| *Your Name* | **Cloud Infrastructure**: Terraform, networking, IAM, ALB/ASG, Lambda/SQS/SNS/EventBridge wiring, EC2 bootstrapping |
-| *Member 2* | Federated Learning / ML model |
-| *Member 3* | Aggregation & prediction logic |
-| *Member 4* | Website & load testing |
+| *Jaikiran* | **Cloud Infrastructure**: Terraform, networking, IAM, ALB/ASG, Lambda/SQS/SNS/EventBridge wiring, EC2 bootstrapping |
+| *Yeswanth Sai* | Federated Learning / ML model |
+| *Yeswanth Sai* | Aggregation & prediction logic |
+| *Mano & Ajith* | Website & load testing |
 
 > Edit the names and roles to match your team.
