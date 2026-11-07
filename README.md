@@ -17,7 +17,7 @@ Everything is deployed with **Terraform** (Infrastructure as Code) in the `ap-so
 7. [Project Structure](#7-project-structure)
 8. [Tech Stack](#8-tech-stack)
 9. [Current Limitations & Future Work](#9-current-limitations--future-work)
-10. [Interview Cheat Sheet](#10-interview-cheat-sheet)
+10. [Design Decisions](#10-design-decisions)
 11. [Team](#11-team)
 
 ---
@@ -146,7 +146,7 @@ sequenceDiagram
 
 ## 4. Infrastructure (Detailed)
 
-> **This section is my part of the project.** All of it is in `terraform/main.tf`, `terraform/variables.tf` and `terraform/user_data.sh`.
+> All infrastructure is defined in `terraform/main.tf`, `terraform/variables.tf` and `terraform/user_data.sh`.
 
 ### 4.1 Why Terraform?
 - **Repeatable**: `terraform apply` builds the whole system (~40 resources) in minutes. `terraform destroy` removes it, so nothing is left running to cost money.
@@ -326,7 +326,7 @@ python load_test.py
 
 ```
 .
-├── terraform/                    # ← Infrastructure (my part)
+├── terraform/                    # Infrastructure as Code
 │   ├── main.tf                   # all AWS resources
 │   ├── variables.tf              # configurable inputs
 │   ├── user_data.sh              # EC2 bootstrap script
@@ -356,8 +356,6 @@ python load_test.py
 
 ## 9. Current Limitations & Future Work
 
-Being upfront about these shows you understand the system:
-
 | Limitation | Why | Improvement |
 |---|---|---|
 | Lambdas can't import **PyTorch** (package > 250 MB zip limit), so the Predictor falls back to a **CPU-threshold heuristic** (CPU > 10 % → 10 instances, else 2) and the Aggregator writes a placeholder global model | AWS Lambda deployment size limit | Package the Lambdas as **container images** (10 GB limit) or use a Lambda Layer with a slim build |
@@ -369,14 +367,11 @@ Being upfront about these shows you understand the system:
 
 ---
 
-## 10. Interview Cheat Sheet
+## 10. Design Decisions
 
-**Explain the project in 30 seconds:**
-> "We built predictive auto-scaling on AWS. Each EC2 server trains a small LSTM on its own CPU and network metrics, and only shares the model weights. That's Federated Learning, so raw data never leaves the server. A Lambda triggered by SQS combines the weights using weighted FedAvg into a global model in S3. Another Lambda runs every minute, predicts the load, and sets the Auto Scaling Group's capacity before the spike, then emails the admin through SNS. I built the entire infrastructure in Terraform: the VPC across two AZs, the ALB, the ASG with self-configuring EC2 user-data, least-privilege IAM roles, and the serverless pipeline."
+Why the infrastructure is built the way it is:
 
-**Likely questions:**
-
-| Q | A |
+| Question | Answer |
 |---|---|
 | Why two subnets / AZs? | The ALB requires ≥ 2 AZs, and it gives high availability if one AZ goes down. |
 | Why SQS between EC2 and Lambda? | **Decoupling + buffering.** Workers don't wait for the aggregator; if the Lambda is busy or fails, messages aren't lost. |
@@ -391,8 +386,6 @@ Being upfront about these shows you understand the system:
 | Why the random suffix on the S3 bucket? | Bucket names are globally unique across all AWS accounts. |
 | How is the Lambda code deployed? | `archive_file` zips it, and `source_code_hash` redeploys only when the code changes. |
 | What is FedAvg? | The weighted average of the workers' weights: `Σ(nᵢ/N)·wᵢ`. Workers with more samples count more. |
-| What would you improve? | See [Limitations](#9-current-limitations--future-work): container-image Lambdas for PyTorch, private subnets, HTTPS, remote state. |
-| Biggest challenge? | Instances getting OOM-killed during bootstrap (solved with swap) and the Lambda 250 MB limit for PyTorch. |
 
 ---
 
@@ -404,5 +397,3 @@ Being upfront about these shows you understand the system:
 | *Yeswanth Sai* | Federated Learning / ML model |
 | *Yeswanth Sai* | Aggregation & prediction logic |
 | *Mano & Ajith* | Website & load testing |
-
-> Edit the names and roles to match your team.
