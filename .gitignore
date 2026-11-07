@@ -1,0 +1,20 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+*.zip
+
+# Logs / outputs
+*.log
+*_response.json
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Env / secrets
+.env
